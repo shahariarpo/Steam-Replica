@@ -42,33 +42,24 @@ export default async function handler(req, res) {
       'Origin': 'https://store.steampowered.com',
     };
 
-    let response = await fetch(targetUrl, { headers });
-
-    // If Steam blocks direct cloud IP or returns error, try fallback public proxy
-    if (!response.ok) {
-      const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-      try {
-        const fallbackRes = await fetch(fallbackUrl);
-        if (fallbackRes.ok) {
-          response = fallbackRes;
-        }
-      } catch {
-        // Continue with original response
-      }
-    }
+    // Fast 3-second timeout so the serverless function never hangs
+    const response = await fetch(targetUrl, {
+      headers,
+      signal: AbortSignal.timeout(3000),
+    });
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: `Steam API failed with status ${response.status}`,
+        error: `Steam API responded with ${response.status}`,
       });
     }
 
     const data = await response.json();
 
-    // Cache on Vercel edge for 5 minutes (300s) to avoid Steam rate-limiting
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    // Cache on Vercel CDN: 10 mins fresh, 24h stale-while-revalidate for blazing fast responses
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=86400');
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Internal proxy error' });
+    return res.status(500).json({ error: error.message || 'Proxy error' });
   }
 }

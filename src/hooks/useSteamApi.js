@@ -4,10 +4,19 @@ const cache = new Map();
 
 export function useSteamApi(endpoint, options = {}) {
   const { enabled = true, fallbackData = null } = options;
-  const [data, setData] = useState(() => cache.get(endpoint) || null);
-  const [loading, setLoading] = useState(!cache.has(endpoint));
+
+  // Initialize with cached or fallback data immediately for instant 0ms paint
+  const [data, setData] = useState(() => cache.get(endpoint) || fallbackData || null);
+  const [loading, setLoading] = useState(() => !cache.has(endpoint) && !fallbackData);
   const [error, setError] = useState(null);
-  const abortRef = useRef(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!enabled || !endpoint) return;
@@ -19,73 +28,59 @@ export function useSteamApi(endpoint, options = {}) {
     }
 
     const controller = new AbortController();
-    abortRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5s fast timeout
 
     async function fetchData() {
-      setLoading(true);
-      setError(null);
+      try {
+        const res = await fetch(`/steam-api${endpoint}`, {
+          signal: controller.signal,
+        });
 
-      // Helper to safely parse JSON or throw
-      const tryFetchJson = async (url) => {
-        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
+
         const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-          // If server returned HTML (e.g. index.html SPA fallback), reject so we try alternative
+        let json;
+        if (contentType.includes('application/json')) {
+          json = await res.json();
+        } else {
           const text = await res.text();
-          try {
-            return JSON.parse(text);
-          } catch {
-            throw new Error('Non-JSON response received');
-          }
-        }
-        return await res.json();
-      };
-
-      try {
-        let json = null;
-
-        // 1. First attempt: Direct proxy endpoint (/steam-api/...)
-        try {
-          json = await tryFetchJson(`/steam-api${endpoint}`);
-        } catch (proxyErr) {
-          if (controller.signal.aborted) return;
-          console.warn(`Primary proxy fetch failed for ${endpoint}:`, proxyErr.message);
-
-          // 2. Second attempt: Client-side CORS proxy
-          try {
-            const steamFullUrl = `https://store.steampowered.com${endpoint}`;
-            const publicProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(steamFullUrl)}`;
-            json = await tryFetchJson(publicProxyUrl);
-          } catch (altErr) {
-            if (controller.signal.aborted) return;
-            console.warn(`Alternative proxy fetch failed for ${endpoint}:`, altErr.message);
-            throw altErr;
-          }
+          json = JSON.parse(text);
         }
 
-        if (json) {
+        if (isMounted.current && json) {
           cache.set(endpoint, json);
           setData(json);
+          setError(null);
         }
       } catch (err) {
-        if (err.name === 'AbortError') return;
-        console.error(`Failed to fetch ${endpoint}:`, err);
-        setError(err.message);
+        if (err.name === 'AbortError') {
+          console.warn(`Fetch timed out for ${endpoint}, using fallback data.`);
+        } else {
+          console.warn(`Fetch failed for ${endpoint}:`, err.message);
+        }
 
-        if (fallbackData) {
-          setData(fallbackData);
+        if (isMounted.current) {
+          if (fallbackData) {
+            setData((prev) => prev || fallbackData);
+          } else {
+            setError(err.message);
+          }
         }
       } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     }
 
     fetchData();
 
     return () => {
+      clearTimeout(timeoutId);
       controller.abort();
     };
   }, [endpoint, enabled, fallbackData]);

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/steam-api/:path*",
-      "destination": "https://store.steampowered.com/:path*"
+      "destination": "/api/steam-proxy?path=:path*"
     },
     {
       "source": "/(.*)",

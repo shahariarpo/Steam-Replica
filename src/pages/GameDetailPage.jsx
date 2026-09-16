@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
 import { FaChevronLeft, FaChevronRight, FaShoppingCart, FaCheck, FaArrowLeft, FaShieldAlt, FaExclamationTriangle } from 'react-icons/fa';
 import { useSteamApi } from '../hooks/useSteamApi';
+import { fallbackAppDetails } from '../data/fallbackGames';
 import { useCart } from '../hooks/useCart';
 import { useAdultFilter } from '../context/AdultFilterContext';
 import { isAdultGame } from '../utils/adultFilter';
@@ -14,9 +15,14 @@ export default function GameDetailPage() {
   const { addToCart, isInCart } = useCart();
   const { adultFilterEnabled, toggleAdultFilter } = useAdultFilter();
 
+  const fallbackData = useMemo(() => {
+    if (!appId || !fallbackAppDetails[appId]) return null;
+    return { [appId]: { success: true, data: fallbackAppDetails[appId] } };
+  }, [appId]);
+
   const { data: rawData, loading, error } = useSteamApi(
     `/api/appdetails?appids=${appId}`,
-    { enabled: !!appId }
+    { enabled: !!appId, fallbackData }
   );
 
   const game = useMemo(() => {

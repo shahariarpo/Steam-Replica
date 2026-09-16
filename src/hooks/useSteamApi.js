@@ -25,17 +25,51 @@ export function useSteamApi(endpoint, options = {}) {
       setLoading(true);
       setError(null);
 
-      try {
-        const url = `/steam-api${endpoint}`;
+      // Helper to safely parse JSON or throw
+      const tryFetchJson = async (url) => {
         const res = await fetch(url, { signal: controller.signal });
-
         if (!res.ok) {
-          throw new Error(`Steam API error: ${res.status} ${res.statusText}`);
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          // If server returned HTML (e.g. index.html SPA fallback), reject so we try alternative
+          const text = await res.text();
+          try {
+            return JSON.parse(text);
+          } catch {
+            throw new Error('Non-JSON response received');
+          }
+        }
+        return await res.json();
+      };
+
+      try {
+        let json = null;
+
+        // 1. First attempt: Direct proxy endpoint (/steam-api/...)
+        try {
+          json = await tryFetchJson(`/steam-api${endpoint}`);
+        } catch (proxyErr) {
+          if (controller.signal.aborted) return;
+          console.warn(`Primary proxy fetch failed for ${endpoint}:`, proxyErr.message);
+
+          // 2. Second attempt: Client-side CORS proxy
+          try {
+            const steamFullUrl = `https://store.steampowered.com${endpoint}`;
+            const publicProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(steamFullUrl)}`;
+            json = await tryFetchJson(publicProxyUrl);
+          } catch (altErr) {
+            if (controller.signal.aborted) return;
+            console.warn(`Alternative proxy fetch failed for ${endpoint}:`, altErr.message);
+            throw altErr;
+          }
         }
 
-        const json = await res.json();
-        cache.set(endpoint, json);
-        setData(json);
+        if (json) {
+          cache.set(endpoint, json);
+          setData(json);
+        }
       } catch (err) {
         if (err.name === 'AbortError') return;
         console.error(`Failed to fetch ${endpoint}:`, err);

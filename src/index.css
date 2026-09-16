@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+@theme {
+  --color-steam-darkest: #171a21;
+  --color-steam-dark: #1b2838;
+  --color-steam-medium: #2a475e;
+  --color-steam-accent: #66c0f4;
+  --color-steam-accent-hover: #8ad3f7;
+  --color-steam-green: #4c6b22;
+  --color-steam-green-light: #a4d007;
+  --color-steam-discount-bg: #4c6b22;
+  --color-steam-text: #c7d5e0;
+  --color-steam-text-dim: #8f98a0;
+  --color-steam-text-bright: #ffffff;
+  --color-steam-card-bg: #16202d;
+  --color-steam-card-hover: #1e3044;
+  --color-steam-input-bg: #316282;
+  --color-steam-border: #2a475e;
+  --color-steam-positive: #66c0f4;
+  --color-steam-warning: #ffc82c;
+
+  --font-family-sans: 'Inter', 'Motiva Sans', Arial, Helvetica, sans-serif;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  background-color: var(--color-steam-dark);
+  color: var(--color-steam-text);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Custom dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-steam-darkest);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-steam-medium);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-steam-accent);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-steam-medium) var(--color-steam-darkest);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==================== ANIMATIONS ==================== */
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-steam-card-bg) 25%,
+    var(--color-steam-medium) 50%,
+    var(--color-steam-card-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Fade-in on scroll / mount */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* Carousel slide transition */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+/* Subtle pulse for cart badge */
+@keyframes cartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.animate-cart-pulse {
+  animation: cartPulse 0.3s ease-in-out;
+}
+
+/* Glow effect for cards on hover */
+.card-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 8px 30px rgba(102, 192, 244, 0.15),
+              0 0 0 1px rgba(102, 192, 244, 0.1);
+}
+
+/* Price badge flash for discounts */
+@keyframes discountFlash {
+  0% { background-color: #4c6b22; }
+  50% { background-color: #5c8a28; }
+  100% { background-color: #4c6b22; }
+}
+
+/* Background ambient gradient for hero */
+.hero-ambient {
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(102, 192, 244, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(76, 107, 34, 0.05) 0%, transparent 50%);
+}
+
+/* ==================== UTILITY ==================== */
+
+.price-strike {
+  text-decoration: line-through;
+  color: var(--color-steam-text-dim);
+}
+
+/* Glassmorphism panels */
+.glass {
+  background: rgba(27, 40, 56, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Section divider gradient */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-steam-border),
+    transparent
+  );
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+/* Ensure images don't overflow on mobile */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Touch-friendly tap targets on mobile */
+@media (max-width: 640px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

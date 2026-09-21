@@ -2,12 +2,13 @@ import { Link } from 'react-router';
 import PlatformIcons from './PlatformIcons';
 
 export default function GameCard({ game }) {
+  const isComingSoon = game.coming_soon || game.release_date?.coming_soon;
+  const isDiscounted = !isComingSoon && game.discount_percent > 0;
+
   const formatPrice = (cents) => {
     if (!cents || cents === 0) return 'Free';
     return `$${(cents / 100).toFixed(2)}`;
   };
-
-  const isDiscounted = game.discount_percent > 0;
 
   return (
     <Link
@@ -26,11 +27,15 @@ export default function GameCard({ game }) {
         {/* Hover overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-steam-darkest/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
-        {isDiscounted && (
+        {isComingSoon ? (
+          <div className="absolute top-2 right-2 bg-sky-900/90 border border-sky-400/40 px-2 py-0.5 rounded text-[11px] font-semibold text-sky-200 shadow-lg shadow-sky-950/50">
+            Coming Soon
+          </div>
+        ) : isDiscounted ? (
           <div className="absolute top-2 right-2 bg-steam-green px-2 py-0.5 rounded text-xs font-bold text-steam-green-light shadow-lg shadow-steam-green/30">
             -{game.discount_percent}%
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Info */}
@@ -47,7 +52,11 @@ export default function GameCard({ game }) {
           />
 
           <div className="flex items-center gap-1.5">
-            {isDiscounted ? (
+            {isComingSoon ? (
+              <span className="text-xs font-medium text-sky-400">
+                {game.release_date?.date || 'Coming Soon'}
+              </span>
+            ) : isDiscounted ? (
               <>
                 <span className="bg-steam-green/20 text-steam-green-light text-[11px] font-bold px-1.5 py-0.5 rounded">
                   -{game.discount_percent}%
@@ -61,9 +70,9 @@ export default function GameCard({ game }) {
               </>
             ) : (
               <span className={`text-sm font-semibold ${
-                game.final_price === 0 ? 'text-steam-green-light' : 'text-steam-text-bright'
+                game.final_price === 0 || game.is_free ? 'text-steam-green-light' : 'text-steam-text-bright'
               }`}>
-                {formatPrice(game.final_price)}
+                {game.is_free ? 'Free to Play' : formatPrice(game.final_price)}
               </span>
             )}
           </div>

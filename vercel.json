@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/steam-api/:path*",
-      "destination": "/api/steam-proxy?path=:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { FaSteam, FaUser, FaBars, FaTimes, FaShieldAlt } from 'react-icons/fa';
-import { useAdultFilter } from '../context/AdultFilterContext';
+import { FaSteam, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import SearchBar from './SearchBar';
 import CartIcon from './CartIcon';
 import CartPanel from './CartPanel';
@@ -16,7 +15,6 @@ const NAV_LINKS = [
 export default function Navbar({ searchGames = [] }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { adultFilterEnabled, toggleAdultFilter } = useAdultFilter();
 
   return (
     <>
@@ -56,33 +54,11 @@ export default function Navbar({ searchGames = [] }) {
               </div>
             </div>
 
-            {/* Right side: search, adult filter toggle, user, cart */}
-            <div className="flex items-center gap-2">
+            {/* Right side: search, user, cart */}
+            <div className="flex items-center gap-3">
               <div className="hidden sm:block">
                 <SearchBar games={searchGames} />
               </div>
-
-              {/* Adult Content Filter Toggle */}
-              <button
-                onClick={toggleAdultFilter}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
-                  adultFilterEnabled
-                    ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/60 hover:border-emerald-400'
-                    : 'bg-amber-950/60 text-amber-400 border border-amber-500/30 hover:bg-amber-900/60 hover:border-amber-400'
-                }`}
-                title={
-                  adultFilterEnabled
-                    ? 'Adult Content Filter: ACTIVE (Filtering out adult games)'
-                    : 'Adult Content Filter: OFF (Adult games shown)'
-                }
-                aria-label="Toggle Adult Content Filter"
-                id="adult-filter-toggle"
-              >
-                <FaShieldAlt className={`text-xs ${adultFilterEnabled ? 'text-emerald-400' : 'text-amber-400'}`} />
-                <span className="hidden lg:inline">
-                  {adultFilterEnabled ? 'Adult Filter: On' : 'Adult Filter: Off'}
-                </span>
-              </button>
 
               <button
                 className="p-2 text-steam-text hover:text-steam-accent transition-all duration-200 hover:scale-110"
@@ -110,23 +86,6 @@ export default function Navbar({ searchGames = [] }) {
             <div className="md:hidden pb-4 pt-2 border-t border-white/5 space-y-2 animate-fade-in-up">
               <div className="sm:hidden pb-1">
                 <SearchBar games={searchGames} />
-              </div>
-              <div className="pt-1 pb-1">
-                <button
-                  onClick={toggleAdultFilter}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm font-medium transition-all ${
-                    adultFilterEnabled
-                      ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-amber-950/60 text-amber-400 border border-amber-500/30'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <FaShieldAlt /> Adult Content Filter
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-black/40">
-                    {adultFilterEnabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                </button>
               </div>
               {NAV_LINKS.map((link) => (
                 <Link

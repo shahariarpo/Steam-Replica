@@ -1,105 +1,27 @@
-import { useMemo } from 'react';
-import { useSteamApi } from '../hooks/useSteamApi';
-import { fallbackFeatured, fallbackCategories } from '../data/fallbackGames';
-import { useAdultFilter } from '../context/AdultFilterContext';
-import { filterAdultGames } from '../utils/adultFilter';
+import {
+  HERO_GAMES,
+  SPECIAL_OFFERS,
+  TOP_SELLERS,
+  NEW_RELEASES,
+  COMING_SOON,
+  DAILY_DEALS,
+} from '../data/gamesData';
 import HeroCarousel from '../components/HeroCarousel';
 import GameGrid from '../components/GameGrid';
 
-export default function StorePage({ onSearchGamesReady }) {
-  const { adultFilterEnabled } = useAdultFilter();
-
-  const {
-    data: featured,
-    loading: featuredLoading,
-    error: featuredError,
-  } = useSteamApi('/api/featured/?l=english', { fallbackData: fallbackFeatured });
-
-  const {
-    data: categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSteamApi('/api/featuredcategories/?l=english', { fallbackData: fallbackCategories });
-
-  // Prepare hero carousel items
-  const heroGames = useMemo(() => {
-    if (!featured) return [];
-    const capsules = featured.large_capsules || [];
-    const featuredWin = featured.featured_win || [];
-    const rawGames = [...capsules, ...featuredWin.slice(0, 3)];
-    const cleanGames = filterAdultGames(rawGames, adultFilterEnabled);
-    return cleanGames.slice(0, 8);
-  }, [featured, adultFilterEnabled]);
-
-  // Collect all games for search
-  const allGames = useMemo(() => {
-    if (!categories) return [];
-    const gameMap = new Map();
-    const sections = ['specials', 'top_sellers', 'new_releases', 'coming_soon'];
-    for (const key of sections) {
-      const items = categories[key]?.items || [];
-      for (const item of items) {
-        if (!gameMap.has(item.id)) gameMap.set(item.id, item);
-      }
-    }
-    if (featured) {
-      for (const g of [...(featured.large_capsules || []), ...(featured.featured_win || [])]) {
-        if (!gameMap.has(g.id)) gameMap.set(g.id, g);
-      }
-    }
-    const combined = Array.from(gameMap.values());
-    return filterAdultGames(combined, adultFilterEnabled);
-  }, [categories, featured, adultFilterEnabled]);
-
-  // Pass search games up to App
-  useMemo(() => {
-    if (onSearchGamesReady && allGames.length > 0) {
-      onSearchGamesReady(allGames);
-    }
-  }, [allGames, onSearchGamesReady]);
-
-  const specials = useMemo(
-    () => filterAdultGames(categories?.specials?.items || [], adultFilterEnabled).slice(0, 8),
-    [categories, adultFilterEnabled]
-  );
-  const topSellers = useMemo(
-    () => filterAdultGames(categories?.top_sellers?.items || [], adultFilterEnabled).slice(0, 8),
-    [categories, adultFilterEnabled]
-  );
-  const newReleases = useMemo(
-    () => filterAdultGames(categories?.new_releases?.items || [], adultFilterEnabled).slice(0, 8),
-    [categories, adultFilterEnabled]
-  );
-  const comingSoon = useMemo(
-    () => filterAdultGames(categories?.coming_soon?.items || [], adultFilterEnabled).slice(0, 4),
-    [categories, adultFilterEnabled]
-  );
-  const dailyDeals = useMemo(
-    () => filterAdultGames(categories?.['6']?.items || [], adultFilterEnabled).slice(0, 2),
-    [categories, adultFilterEnabled]
-  );
-
-  // Show error banner if both APIs failed
-  const hasError = featuredError && categoriesError && !featured && !categories;
+export default function StorePage() {
+  const heroGames = HERO_GAMES;
+  const specials = SPECIAL_OFFERS.slice(0, 8);
+  const topSellers = TOP_SELLERS.slice(0, 8);
+  const newReleases = NEW_RELEASES.slice(0, 8);
+  const comingSoon = COMING_SOON.slice(0, 4);
+  const dailyDeals = DAILY_DEALS.slice(0, 2);
 
   return (
     <main className="max-w-[1200px] mx-auto px-4 py-6 space-y-10" id="store-page">
-      {/* Error banner */}
-      {hasError && (
-        <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-4 text-center animate-fade-in-up">
-          <p className="text-red-300 text-sm">
-            ⚠️ Could not connect to Steam. Showing cached data.
-          </p>
-        </div>
-      )}
-
       {/* Hero Carousel */}
       <section className="animate-fade-in-up">
-        {featuredLoading ? (
-          <div className="w-full aspect-[16/7] md:aspect-[16/6] skeleton rounded-xl" />
-        ) : (
-          <HeroCarousel games={heroGames} />
-        )}
+        <HeroCarousel games={heroGames} />
       </section>
 
       {/* Spotlights / Daily Deal banner */}
@@ -144,21 +66,21 @@ export default function StorePage({ onSearchGamesReady }) {
       <GameGrid
         title="Special Offers"
         games={specials}
-        loading={categoriesLoading}
+        loading={false}
       />
 
       {/* Top Sellers */}
       <GameGrid
         title="Top Sellers"
         games={topSellers}
-        loading={categoriesLoading}
+        loading={false}
       />
 
       {/* New Releases */}
       <GameGrid
-        title="New Releases"
+        title="New & Trending"
         games={newReleases}
-        loading={categoriesLoading}
+        loading={false}
       />
 
       {/* Coming Soon */}
@@ -166,7 +88,7 @@ export default function StorePage({ onSearchGamesReady }) {
         <GameGrid
           title="Coming Soon"
           games={comingSoon}
-          loading={categoriesLoading}
+          loading={false}
         />
       )}
     </main>

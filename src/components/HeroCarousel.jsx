@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaClock } from 'react-icons/fa';
 
 export default function HeroCarousel({ games = [] }) {
   const [current, setCurrent] = useState(0);
@@ -34,6 +34,7 @@ export default function HeroCarousel({ games = [] }) {
   }
 
   const game = games[current];
+  const isComingSoon = game.coming_soon || game.release_date?.coming_soon;
 
   const formatPrice = (cents) => {
     if (!cents || cents === 0) return 'Free to Play';
@@ -72,7 +73,11 @@ export default function HeroCarousel({ games = [] }) {
             {game.name}
           </h2>
           <div className="flex items-center gap-3 flex-wrap animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            {game.discount_percent > 0 ? (
+            {isComingSoon ? (
+              <span className="inline-flex items-center gap-2 bg-sky-600/90 text-white px-3 py-1 rounded-md text-sm md:text-base font-bold shadow-lg shadow-sky-600/30">
+                <FaClock className="text-sm" /> Coming Soon • {game.release_date?.date || 'TBA'}
+              </span>
+            ) : game.discount_percent > 0 ? (
               <>
                 <span className="bg-steam-green px-3 py-1 rounded-md text-sm md:text-base font-bold text-steam-green-light shadow-lg shadow-steam-green/30">
                   -{game.discount_percent}%
@@ -86,7 +91,7 @@ export default function HeroCarousel({ games = [] }) {
               </>
             ) : (
               <span className="text-steam-text-bright font-bold text-sm md:text-lg">
-                {formatPrice(game.final_price)}
+                {game.is_free ? 'Free to Play' : formatPrice(game.final_price)}
               </span>
             )}
           </div>

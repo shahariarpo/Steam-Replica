@@ -65,7 +65,6 @@ Steam-Replica/
 │   │   ├── PlatformIcons.jsx   # Windows/Mac/Linux platform indicators
 │   │   └── SearchBar.jsx       # Real-time search autocomplete
 │   ├── context/             # React Context providers
-│   │   ├── AdultFilterContext.jsx  # Safe browsing filter state
 │   │   └── CartContext.jsx         # Cart state & localStorage sync
 │   ├── data/                # Static games dataset & lookups
 │   │   └── gamesData.js
@@ -74,8 +73,6 @@ Steam-Replica/
 │   ├── pages/                # Page views
 │   │   ├── GameDetailPage.jsx  # Individual game overview & media
 │   │   └── StorePage.jsx       # Storefront homepage
-│   ├── utils/                # Helper utilities & content classifiers
-│   │   └── adultFilter.js      # Descriptors & keyword safety classifier
 │   ├── App.jsx              # Top-level routing & layout wrapper
 │   ├── index.css            # Tailwind v4 theme & custom animations
 │   └── main.jsx              # React root mount
